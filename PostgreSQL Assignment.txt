@@ -1,0 +1,107 @@
+1) Creating a database name homecare_db
+ 
+=> CREATE DATABASE homecare_db
+
+    WITH
+
+    OWNER = postgres
+
+    ENCODING = 'UTF8'
+
+    LOCALE_PROVIDER = 'libc'
+
+    CONNECTION LIMIT = -1
+
+    IS_TEMPLATE = False;
+
+2) Creating a schema named hc inside the homecare_db database
+
+=> CREATE SCHEMA hc
+    AUTHORIZATION postgres;
+
+3) Create a users table with the following fields:
+i. user_id (UUID, Primary Key)
+ii. first_name
+iii. last_name
+iv. email
+v. password (encrypted)
+vi. created_by (user_id)
+vii. created_date
+viii. modified_by (user_id)
+ix. modified_date
+x. is_active
+xi. is_deleted
+xii. birth_date
+xiii. address
+xiv. mobile_number
+
+=> CREATE TABLE users (
+	user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+	first_name varchar(30) not null,
+	last_name varchar(40) not null,
+	email varchar(50) unique not null,
+	password varchar(255) not null,
+	created_by UUID REFERENCES users(user_id) on DELETE NO ACTION,
+	created_date timestamptz not null default now(),
+	modified_by UUID REFERENCES users(user_id) on DELETE NO ACTION,
+	modified_date timestamptz ,
+	is_active boolean not null default TRUE, 
+	is_deleted boolean not null default FALSE,
+	birth_date date,
+	address varchar(255) not null,
+	mobile_number varchar(250) not null
+);
+
+ 
+
+4) Insert at least 10 user records with unique email addresses.
+
+=> INSERT INTO hc.Users (
+    first_name, last_name, email, password,  
+    created_date, is_active, is_deleted, birth_date, address, mobile_number
+) VALUES 
+('James', 'Smith', 'j.smith@email.com', '$2b$12$ExaMplEHaSh1...', '2023-01-15', true, false, '1988-05-12', '123 Maple St, Springfield', '+1-555-0101');
+
+=> INSERT INTO hc.Users (
+    first_name, last_name, email, password, created_by, 
+    created_date, is_active, is_deleted, birth_date, address, mobile_number
+) VALUES 
+('Maria', 'Garcia', 'm.garcia@email.com', '$2b$12$ExaMplEHaSh2...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-02-10', true, false, '1992-11-23', '456 Oak Ave, Riverside', '+1-555-0102'),
+('Robert', 'Johnson', 'r.johnson@email.com', '$2b$12$ExaMplEHaSh3...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-03-05', true, false, '1985-07-30', '789 Pine Rd, Lakeside', '+1-555-0103'),
+('Linda', 'Williams', 'l.williams@email.com', '$2b$12$ExaMplEHaSh4...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-03-20', true, false, '1990-02-14', '101 Cedar Ln, Hilltop', '+1-555-0104'),
+('Michael', 'Brown', 'm.brown@email.com', '$2b$12$ExaMplEHaSh5...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-04-12', true, false, '1982-12-01', '202 Birch Blvd, Parkview', '+1-555-0105'),
+('Elizabeth', 'Jones', 'e.jones@email.com', '$2b$12$ExaMplEHaSh6...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-05-18', true, false, '1995-09-09', '303 Willow Way, Fairview', '+1-555-0106'),
+('David', 'Miller', 'd.miller@email.com', '$2b$12$ExaMplEHaSh7...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-06-01', true, false, '1987-03-25', '404 Elm St, Newtown', '+1-555-0107'),
+('Jennifer', 'Davis', 'j.davis@email.com', '$2b$12$ExaMplEHaSh8...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-06-15', true, false, '1993-06-30', '505 Aspen Dr, Seaview', '+1-555-0108'),
+('William', 'Wilson', 'w.wilson@email.com', '$2b$12$ExaMplEHaSh9...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-07-22', true, false, '1980-10-10', '606 Cherry Ct, Brookside', '+1-555-0109'),
+('Susan', 'Taylor', 's.taylor@email.com', '$2b$12$ExaMplEHaSh0...', '2e6aa266-0dfb-422d-829a-286caca30edd', '2023-08-05', true, false, '1989-04-17', '707 Walnut Pl, Eastwood', '+1-555-0110');
+
+
+5) SQL Queries
+a) Write SQL queries for the following requirements:
+	1) Fetch all users
+	=> SELECT * FROM Users;
+	
+	2) Fetch only user name (first_name + last_name) and email
+	=> SELECT concat(first_name,' ',last_name) AS "user_name", email FROM Users;
+
+	3)  Fetch only inactive users
+	=> SELECT * FROM hc.Users WHERE is_active = 'false';
+
+	4) Users whose first_name starts with 'A' and last_name ends with 'i'.
+	=> SELECT * FROM hc.Users WHERE first_name LIKE 'A%i';
+
+	5) Users whose email contains '@example'
+	=> SELECT * FROM hc.Users WHERE email LIKE '%@example%';
+
+	6) Case-insensitive search for first_name starting with 'A'
+	=> SELECT * FROM hc.Users WHERE first_name ILIKE 'A%';
+
+	7) Users ordered by created_date (descending)
+	=> SELECT * FROM hc.Users ORDER BY created_date DESC;
+
+	8) Top 5 latest created users
+	=> SELECT * FROM hc.Users ORDER BY created_date DESC LIMIT 5;
+
+	9) Second page of results (5 records per page)
+	=> SELECT * FROM hc.Users ORDER BY created_date DESC OFFSET 5 LIMIT 5 ;
